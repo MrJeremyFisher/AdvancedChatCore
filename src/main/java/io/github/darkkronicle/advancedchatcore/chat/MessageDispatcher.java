@@ -47,44 +47,6 @@ public class MessageDispatcher {
         registerPreFilter(text -> Optional.of(StyleFormatter.formatText(text)), -1);
 
         registerPreFilter(
-                text -> {
-                    String string = text.getString();
-                    if (string.isEmpty()) {
-                        return Optional.empty();
-                    }
-                    SearchResult search =
-                            SearchResult.searchOf(
-                                    string,
-                                    "(http(s)?:\\/\\/.)?(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&\\/=]*)",
-                                    FindType.REGEX);
-                    if (search.size() == 0) {
-                        return Optional.empty();
-                    }
-                    Map<StringMatch, FluidText.StringInsert> insert = new HashMap<>();
-                    for (StringMatch match : search.getMatches()) {
-                        insert.put(
-                                match,
-                                (current, match1) -> {
-                                    String url = match1.match;
-                                    if (!SearchUtils.isMatch(
-                                            match1.match, "(http(s)?:\\/\\/.)", FindType.REGEX)) {
-                                        url = "https://" + url;
-                                    }
-                                    if (current.getStyle().getClickEvent() == null) {
-                                        return new FluidText(
-                                                current.withStyle(current.getStyle().withClickEvent(
-                                                        new ClickEvent(ClickEvent.Action.OPEN_URL, url)
-                                                )).withMessage(match1.match)
-                                        );
-                                    }
-                                    return new FluidText(current);
-                                });
-                    }
-                    text.replaceStrings(insert);
-                    return Optional.of(text);
-                },
-                -1);
-        registerPreFilter(
                 (IMessageProcessor)
                         (text, orig) -> {
                             LogManager.getLogger()
